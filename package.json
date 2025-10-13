@@ -1,32 +1,55 @@
 {
-  "name": "homebridge-myhome-tng",
-  "version": "0.0.20",
-  "description": "Legrand MyHome plugin for homebridge: https://github.com/nfarina/homebridge",
+  "name": "homebridge-myhome-eve",
+  "version": "1.0.3",
+  "displayName": "MyHome Eve Power Meter",
+  "description": "Plugin Homebridge per BTicino MyHome OpenWebNet (WHO=18, moduli F520 e F523) con compatibilità completa con l'app Eve per la visualizzazione della potenza istantanea e del consumo totale.",
   "license": "MIT",
-  "keywords": [
-    "homebridge-plugin"
-  ],
-  "engines": {
-    "node": ">=0.12.0",
-    "homebridge": ">=0.2.0"
-  },
   "author": {
-    "name": "Angelo Conforti"
+    "name": "Michele Galanti",
+    "email": "bubez81@me.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/angeloxx/homebridge-myhome"
+    "url": "git+https://github.com/bubez81/homebridge-myhome-eve.git"
   },
+  "bugs": {
+    "url": "https://github.com/bubez81/homebridge-myhome-eve/issues"
+  },
+  "homepage": "https://github.com/bubez81/homebridge-myhome-eve#readme",
+  "keywords": [
+    "homebridge-plugin",
+    "homebridge",
+    "myhome",
+    "bticino",
+    "openwebnet",
+    "legrand",
+    "f520",
+    "f523",
+    "energy",
+    "power",
+    "consumo",
+    "eve",
+    "perlhof"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "homebridge": ">=1.6.0"
+  },
+  "enginesStrict": true,
+  "main": "index.js",
   "dependencies": {
+    "debug": "^4.3.4",
     "colorsys": "^1.0.9",
-    "debug": "^2.4.5",
-    "net": "^1.0.0",
-    "promise": "^7.0.0",
+    "inherits": "^2.0.4",
+    "promise": "^8.3.0",
     "sha1": "^1.1.1",
     "sha256": "^0.2.0",
-    "sprint-js": "^0.1.0",
-    "sprintf-js": "^1.0.3",
+    "sprintf-js": "^1.1.2",
     "wait-until": "^0.0.2",
-    "inherits": "^2.0.0"
+    "fakegato-history": "^0.6.5"
+  },
+  "scripts": {
+    "lint": "eslint . || true",
+    "start": "homebridge -I -D"
   }
 }
