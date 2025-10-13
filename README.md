@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/homebridge-myhome-eve.svg)](https://www.npmjs.com/package/homebridge-myhome-eve)
 [![homebridge](https://badgen.net/badge/Homebridge/Plugin/green)](https://homebridge.io)
 [![npm downloads](https://img.shields.io/npm/dt/homebridge-myhome-eve.svg)](https://www.npmjs.com/package/homebridge-myhome-eve)
-[![Upstream PR](https://img.shields.io/github/pull/25/angeloxx/homebridge-myhome?label=Upstream%20PR&style=for-the-badge&color=brightgreen)](https://github.com/angeloxx/homebridge-myhome/pull/25)
+[![Pull Request #25](https://img.shields.io/github/pulls/detail/state/angeloxx/homebridge-myhome/25?label=PR%20%2325%20status)](https://github.com/angeloxx/homebridge-myhome/pull/25)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Plugin Homebridge per **BTicino MyHome OpenWebNet** (WHO=18, moduli **F520/F523**) con compatibilità **Eve**: visualizza **potenza istantanea (W)** e **consumo totale (kWh)** nell’app Eve con grafici e storico.
