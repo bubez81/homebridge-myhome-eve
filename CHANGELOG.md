@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.8
+- Rimosso di nuovo `config.schema.json`: anche dopo aver eliminato le `condition` sui campi opzionali (1.1.6), il form di Homebridge UI continuava a non caricare i valori reali della configurazione esistente. Non è stato possibile riprodurre il problema in un ambiente di test completo per individuare la causa esatta nel codice del frontend di Homebridge UI. Per evitare ulteriori tentativi rischiosi, si torna alla modalità di editing manuale del JSON, l'unica verificata sicura. Si valuterà di riprovare in futuro con un ambiente di test più adeguato.
+
 ## 1.1.7
 - Aggiunto questo file CHANGELOG.md, così Homebridge UI può mostrarlo nel popup di aggiornamento.
 
