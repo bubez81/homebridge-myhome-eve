@@ -563,8 +563,8 @@ class MHPowerMeter {
                 var service = new Service.AccessoryInformation();
                 service
                         .setCharacteristic(Characteristic.Name, this.name)
-                        .setCharacteristic(Characteristic.Manufacturer, "Legrand MyHome")
-                        .setCharacteristic(Characteristic.Model, "Power Meter")
+                        .setCharacteristic(Characteristic.Manufacturer, this.config.manufacturer || "Legrand MyHome")
+                        .setCharacteristic(Characteristic.Model, this.config.model || "Power Meter")
                         .setCharacteristic(Characteristic.SerialNumber, "Address " + this.address);
 
                 // Servizio custom Eve Power Meter (layout originale)

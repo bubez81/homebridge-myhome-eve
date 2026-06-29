@@ -80,6 +80,22 @@
               "condition": {
                 "functionBody": "return ['MHBlind', 'MHBlindAdvanced', 'MHPowerMeter'].includes(model.accessory);"
               }
+            },
+            "manufacturer": {
+              "title": "Produttore (mostrato nell'app Home)",
+              "type": "string",
+              "description": "Solo per misuratori di potenza",
+              "condition": {
+                "functionBody": "return model.accessory === 'MHPowerMeter';"
+              }
+            },
+            "model": {
+              "title": "Modello (mostrato nell'app Home)",
+              "type": "string",
+              "description": "Solo per misuratori di potenza",
+              "condition": {
+                "functionBody": "return model.accessory === 'MHPowerMeter';"
+              }
             }
           }
         }
