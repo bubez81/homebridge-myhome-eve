@@ -2,13 +2,14 @@ var path = require("path");
 var mh = require(path.join(__dirname,'/lib/mhclient'));
 var sprintf = require("sprintf-js").sprintf, inherits = require("util").inherits, Promise = require('promise');
 var events = require('events'), util = require('util'), fs = require('fs');
-var Accessory, Characteristic, Service, UUIDGen;
+var Accessory, Characteristic, Service, UUIDGen, FakeGatoHistoryService;
 
 module.exports = function (homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
 	Accessory = homebridge.platformAccessory;
 	UUIDGen = homebridge.hap.uuid;
+	FakeGatoHistoryService = require('fakegato-history')(homebridge);
 
 
 
@@ -64,6 +65,7 @@ class LegrandMyHome {
 		this.ready = false;
 		this.devices = [];
 		this.lightBuses = [];
+		this._powerIndex = new Map();
 		this.controller = new mh.MyHomeClient(config.ipaddress, config.port, config.ownpassword, this);
 		this.config.devices.forEach(function (accessory) {
 			this.log.info("LegrandMyHome: adds accessory");
@@ -83,6 +85,15 @@ class LegrandMyHome {
 		}.bind(this));
 		this.log.info("LegrandMyHome for MyHome Gateway at " + config.ipaddress + ":" + config.port);
 		this.controller.start();
+
+		/* Centralized WHO=18 polling: a single timer refreshes all power meters,
+		   instead of one setInterval per accessory hammering the gateway independently. */
+		this._who18Timer = setInterval(function() {
+			this._powerIndex.forEach(function(accessory) {
+				try { this.controller.getInstantPower(accessory.address); } catch(e) {}
+				try { this.controller.getEnergyTotal(accessory.address); } catch(e) {}
+			}.bind(this));
+		}.bind(this), 60000);
 	}
 
 	onMonitor(_frame) {
@@ -155,10 +166,8 @@ class LegrandMyHome {
 
 	accessories(callback) {
 		this.log.debug("LegrandMyHome (accessories readed)");
-		/* indice per i misuratori di potenza/energia */
-		if (!this._powerIndex) this._powerIndex = new Map();
 		callback(this.devices);
-	}	
+	}
 }
 
 class MHScene {
@@ -537,18 +546,12 @@ class MHPowerMeter {
 		this.value = 0; // instant power in W
 		this.energyKwh = 0; // total energy in kWh
 		this.log.info(sprintf("LegrandMyHome::MHPowerMeter create object: %s", this.address));
-		// register in platform index for WHO=18 updates
+		// register in platform index for WHO=18 updates (polling is centralized in LegrandMyHome)
 		if (this.config && this.config.parent) {
-			if (!this.config.parent._powerIndex) this.config.parent._powerIndex = new Map();
 			this.config.parent._powerIndex.set(String(this.address), this);
 		}
-		// light polling to refresh values
-		const tick = () => {
-			try { this.mh.getInstantPower(this.address); } catch(e) {}
-			try { this.mh.getEnergyTotal(this.address); } catch(e) {}
-		};
-		this._who18Timer = setInterval(tick, 60000);
-		tick();
+		try { this.mh.getInstantPower(this.address); } catch(e) {}
+		try { this.mh.getEnergyTotal(this.address); } catch(e) {}
 	}
         getServices() {
                 var service = new Service.AccessoryInformation();
@@ -560,47 +563,37 @@ class MHPowerMeter {
 
                 // Servizio custom Eve Power Meter (layout originale)
                 this.powerMeterService = new LegrandMyHome.PowerMeterService(this.name);
-
-                // >>> AGGIUNTA: UUID univoco del servizio per forzare refresh in Eve
                 this.powerMeterService.UUID = UUIDGen.generate(sprintf("powermeter-v2-%s", this.address));
-                // <<< FINE AGGIUNTA
 
-                // Caratteristica principale: potenza istantanea
+                // Entrambe le caratteristiche vengono create subito, nello stesso ordine per ogni
+                // accessorio (potenza istantanea prima, consumo totale dopo): l'ordine mostrato da Eve
+                // viene fissato al primo pairing, quindi deve essere deterministico già da qui.
                 this.currentChar = this.powerMeterService.getCharacteristic(LegrandMyHome.CurrentPowerConsumption)
                         || this.powerMeterService.addCharacteristic(LegrandMyHome.CurrentPowerConsumption);
+                this.totalChar = this.powerMeterService.getCharacteristic(LegrandMyHome.TotalConsumption)
+                        || this.powerMeterService.addCharacteristic(LegrandMyHome.TotalConsumption);
+                this.powerMeterService.characteristics = [this.currentChar, this.totalChar];
 
-                // Applichiamo un piccolo ritardo per garantire che Eve mantenga sempre lo stesso ordine visivo
-                setTimeout(() => {
-                        // Caratteristica secondaria: consumo totale
-                        this.totalChar = this.powerMeterService.getCharacteristic(LegrandMyHome.TotalConsumption)
-                                || this.powerMeterService.addCharacteristic(LegrandMyHome.TotalConsumption);
-
-                        // Ordine interno preferito (W sopra, kWh sotto)
-                        this.powerMeterService.characteristics = [this.currentChar, this.totalChar];
-                }, 150);
-
-                // Callback per la lettura dei valori
                 this.currentChar.on('get', (callback) => {
                         this.log.info(sprintf("getCurrentPower %s = %s W", this.address, this.value));
                         callback(null, this.value);
                 });
 
-                // La totalChar potrebbe non essere pronta subito, quindi la leghiamo dopo un attimo
-                setTimeout(() => {
-                        if (this.totalChar) {
-                                this.totalChar.on('get', (callback) => {
-                                        this.log.info(sprintf("getTotalEnergy %s = %s kWh", this.address, this.energyKwh));
-                                        callback(null, this.energyKwh);
-                                });
-                        }
-                }, 200);
+                this.totalChar.on('get', (callback) => {
+                        this.log.info(sprintf("getTotalEnergy %s = %s kWh", this.address, this.energyKwh));
+                        callback(null, this.energyKwh);
+                });
 
-                return [service, this.powerMeterService];
+                // Storico per Eve (grafici/andamento nel tempo)
+                this.loggingService = new FakeGatoHistoryService('energy', this, { storage: 'fs' });
+
+                return [service, this.powerMeterService, this.loggingService];
         }
 
         updatePower(watts) {
                 this.value = parseFloat(watts);
                 if (this.currentChar) this.currentChar.updateValue(this.value);
+                if (this.loggingService) this.loggingService.addEntry({ time: Math.round(Date.now() / 1000), power: this.value });
         }
 
         updateEnergyWh(wh) {
