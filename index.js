@@ -2,13 +2,15 @@ var path = require("path");
 var mh = require(path.join(__dirname,'/lib/mhclient'));
 var sprintf = require("sprintf-js").sprintf, inherits = require("util").inherits, Promise = require('promise');
 var events = require('events'), util = require('util'), fs = require('fs');
-var Accessory, Characteristic, Service, UUIDGen, FakeGatoHistoryService;
+var Accessory, Characteristic, Service, UUIDGen, FakeGatoHistoryService, Formats, Perms;
 
 module.exports = function (homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
 	Accessory = homebridge.platformAccessory;
 	UUIDGen = homebridge.hap.uuid;
+	Formats = homebridge.hap.Formats;
+	Perms = homebridge.hap.Perms;
 	FakeGatoHistoryService = require('fakegato-history')(homebridge);
 
 
@@ -18,12 +20,12 @@ module.exports = function (homebridge) {
 		constructor() {
 			super('Consumption', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
 			this.setProps({
-				format: Characteristic.Formats.FLOAT,
+				format: Formats.FLOAT,
 				unit: "Watts",
 				maxValue: 100000,
 				minValue: 0,
 				minStep: 0.1,
-				perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+				perms: [Perms.PAIRED_READ, Perms.NOTIFY]
 			});
 			this.value = this.getDefaultValue();
 		}
@@ -35,12 +37,12 @@ module.exports = function (homebridge) {
                 constructor() {
                         super('Total Consumption', 'E863F10C-079E-48FF-8F27-9C2605A29F52');
                         this.setProps({
-                                format: Characteristic.Formats.FLOAT,
+                                format: Formats.FLOAT,
                                 unit: "kWh",
                                 maxValue: 1000000,
                                 minValue: 0,
                                 minStep: 0.01,
-                                perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+                                perms: [Perms.PAIRED_READ, Perms.NOTIFY]
                         });
                         this.value = this.getDefaultValue();
                 }
