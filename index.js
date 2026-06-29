@@ -14,43 +14,47 @@ module.exports = function (homebridge) {
 
 
 	/* Try to map Elgato's outlet custom vars */
-	LegrandMyHome.CurrentPowerConsumption = function () {
-		Characteristic.call(this, 'Consumption', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
-		this.setProps({
-			format: Characteristic.Formats.FLOAT,
-			unit: "Watts",
-			maxValue: 100000,
-			minValue: 0,
-			minStep: 0.1,
-			perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
-		});
-		this.value = this.getDefaultValue();
+	LegrandMyHome.CurrentPowerConsumption = class CurrentPowerConsumption extends Characteristic {
+		constructor() {
+			super('Consumption', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
+			this.setProps({
+				format: Characteristic.Formats.FLOAT,
+				unit: "Watts",
+				maxValue: 100000,
+				minValue: 0,
+				minStep: 0.1,
+				perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+			});
+			this.value = this.getDefaultValue();
+		}
 	};
 	LegrandMyHome.CurrentPowerConsumption.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
-	inherits(LegrandMyHome.CurrentPowerConsumption, Characteristic);
+
         /* Eve Total Consumption (kWh) */
-        LegrandMyHome.TotalConsumption = function () {
-                Characteristic.call(this, 'Total Consumption', 'E863F10C-079E-48FF-8F27-9C2605A29F52');
-                this.setProps({
-                        format: Characteristic.Formats.FLOAT,
-                        unit: "kWh",
-                        maxValue: 1000000,
-                        minValue: 0,
-                        minStep: 0.01,
-                        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
-                });
-                this.value = this.getDefaultValue();
+        LegrandMyHome.TotalConsumption = class TotalConsumption extends Characteristic {
+                constructor() {
+                        super('Total Consumption', 'E863F10C-079E-48FF-8F27-9C2605A29F52');
+                        this.setProps({
+                                format: Characteristic.Formats.FLOAT,
+                                unit: "kWh",
+                                maxValue: 1000000,
+                                minValue: 0,
+                                minStep: 0.01,
+                                perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+                        });
+                        this.value = this.getDefaultValue();
+                }
         };
         LegrandMyHome.TotalConsumption.UUID = 'E863F10C-079E-48FF-8F27-9C2605A29F52';
-        inherits(LegrandMyHome.TotalConsumption, Characteristic);
 
         /* Eve Power Meter service custom */
-        LegrandMyHome.PowerMeterService = function(displayName, subtype) {
-                Service.call(this, displayName, '00000001-0000-1777-8000-775D67EC4377', subtype);
-                this.addCharacteristic(LegrandMyHome.CurrentPowerConsumption);
-                this.addCharacteristic(LegrandMyHome.TotalConsumption);
+        LegrandMyHome.PowerMeterService = class PowerMeterService extends Service {
+                constructor(displayName, subtype) {
+                        super(displayName, '00000001-0000-1777-8000-775D67EC4377', subtype);
+                        this.addCharacteristic(LegrandMyHome.CurrentPowerConsumption);
+                        this.addCharacteristic(LegrandMyHome.TotalConsumption);
+                }
         };
-        inherits(LegrandMyHome.PowerMeterService, Service);
 
 	process.setMaxListeners(0);
 	homebridge.registerPlatform("homebridge-myhome", "LegrandMyHome", LegrandMyHome);
