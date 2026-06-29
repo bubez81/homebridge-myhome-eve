@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.12
+- Rimosso il `Service.Outlet` "muto" aggiunto in 1.1.11: non ha risolto l'ordine di visualizzazione in Eve (verificato su dati reali: ~50% dei misuratori risultava comunque invertito, indipendentemente dal codice — segno che la causa è una scelta non deterministica dell'app Eve per servizi non-Eve-nativi, non controllabile da plugin). Restava solo un accessorio extra inutile nell'app Home.
+- I misuratori di potenza (`MHPowerMeter`) vengono ora pubblicati come **external accessory** (un pairing HomeKit indipendente per ciascuno) invece che tutti insieme dentro il child bridge unico del plugin. Permette di rimuovere e ri-aggiungere singolarmente ogni misuratore in Eve/Casa per provare a correggere l'ordine di visualizzazione di quello specifico, senza dover ripetere il pairing di tutto l'impianto.
+- Verificato con `hap-nodejs`/`homebridge` reali (stessa combinazione dichiarata da Homebridge 2.1.0): gli external accessory vengono pubblicati con i servizi corretti, gli altri tipi di accessorio (relè, tende, termostati, ecc.) restano nel bridge classico invariati.
+
 ## 1.1.11
 - Trovata (con ricerca approfondita su documentazione fakegato-history, codice sorgente del plugin originale homebridge-myhome e librerie di riferimento come homebridge-lib di ebaauw) la causa reale dell'ordine incoerente/casuale di Consumption/TotalConsumption nell'app Eve: il tipo `'energy'` di fakegato-history è validato solo in combinazione con un `Service.Outlet` nello stesso accessorio; senza di esso (come nel nostro caso) l'app Eve non ha un riferimento stabile per decidere quale valore mostrare come principale, risultando in un comportamento non deterministico anche dopo reset completi di pairing.
 - Aggiunto un `Service.Outlet` "muto" (non gestito, sempre stato di default) come servizio aggiuntivo di ogni `MHPowerMeter`, esattamente come fa il plugin originale `simont77/homebridge-myhome` (citato come esempio di riferimento dalla stessa documentazione di fakegato-history).

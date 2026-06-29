@@ -118,6 +118,37 @@ class LegrandMyHome {
 			if (accessory.accessory == 'MHPowerMeter') this.devices.push(new MHPowerMeter(this.log,accessory))
 		}.bind(this));
 		this.log.info("LegrandMyHome for MyHome Gateway at " + config.ipaddress + ":" + config.port);
+
+		/* I power meter vengono pubblicati come external accessory (un pairing indipendente
+		   ciascuno) invece che dentro il child bridge unico: cosi' possono essere rimossi e
+		   ri-aggiunti singolarmente in Eve/Casa, senza dover ripetere il pairing di tutto il bridge. */
+		this.powerMeterAccessories = this.devices.filter(function(d) { return d instanceof MHPowerMeter; });
+		this.devices = this.devices.filter(function(d) { return !(d instanceof MHPowerMeter); });
+
+		if (this.api && typeof this.api.on === 'function') {
+			this.api.on('didFinishLaunching', function() {
+				if (this.powerMeterAccessories.length === 0) return;
+				var externalAccessories = this.powerMeterAccessories.map(function(meter) {
+					var platformAccessory = new Accessory(meter.name, meter.UUID);
+					meter.getServices().forEach(function(svc) {
+						if (svc.UUID === Service.AccessoryInformation.UUID) {
+							var existing = platformAccessory.getService(Service.AccessoryInformation);
+							if (existing) {
+								svc.characteristics.forEach(function(ch) {
+									try { existing.setCharacteristic(ch.UUID, ch.value); } catch(e) {}
+								});
+								return;
+							}
+						}
+						platformAccessory.addService(svc);
+					});
+					return platformAccessory;
+				});
+				this.api.publishExternalAccessories("homebridge-myhome-eve", externalAccessories);
+				this.log.info("LegrandMyHome: " + externalAccessories.length + " power meter pubblicati come external accessory");
+			}.bind(this));
+		}
+
 		this.controller.start();
 
 		/* Centralized WHO=18 polling: a single timer refreshes all power meters,
@@ -633,12 +664,7 @@ class MHPowerMeter {
                 // Storico per Eve (grafici/andamento nel tempo)
                 this.loggingService = new FakeGatoHistoryService('energy', this, { storage: 'fs' });
 
-                // Service.Outlet "muto" (non gestito): combinazione richiesta da fakegato-history/Eve
-                // per il tipo 'energy', altrimenti l'app Eve non ha un riferimento stabile per
-                // decidere l'ordine di visualizzazione di Consumption/TotalConsumption.
-                this.outlet = new Service.Outlet(this.name + " dumb switch");
-
-                return [service, this.powerMeterService, this.loggingService, this.outlet];
+                return [service, this.powerMeterService, this.loggingService];
         }
 
         updatePower(watts) {
