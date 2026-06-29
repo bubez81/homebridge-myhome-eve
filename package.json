@@ -1,6 +1,6 @@
 {
   "name": "homebridge-myhome-eve",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "displayName": "MyHome Eve Power Meter",
   "description": "Plugin Homebridge per BTicino MyHome OpenWebNet (WHO=18, moduli F520 e F523) con compatibilità completa con l'app Eve per la visualizzazione della potenza istantanea e del consumo totale.",
   "license": "MIT",
