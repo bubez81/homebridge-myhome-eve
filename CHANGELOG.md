@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.9
+- Trovata e corretta la causa reale per cui Homebridge UI non riconosceva il blocco di configurazione del plugin (sia nel form che nell'editor JSON grezzo): l'estrazione dell'alias del plugin, che Homebridge UI esegue eseguendo il nostro `index.js` dentro un ambiente fittizio ("mock"), andava in crash perché sia il nostro codice che `fakegato-history` fanno `class X extends Characteristic`, e in quel mock `Characteristic` non è una vera classe. Il crash impediva a Homebridge UI di scoprire che il blocco con `"platform": "LegrandMyHome"` appartiene a questo plugin. Ora l'inizializzazione di queste classi custom è protetta, così la registrazione della piattaforma avviene comunque. Verificato sia contro il mock di estrazione reale sia contro `@homebridge/hap-nodejs` reale.
+
 ## 1.1.8
 - Rimosso di nuovo `config.schema.json`: anche dopo aver eliminato le `condition` sui campi opzionali (1.1.6), il form di Homebridge UI continuava a non caricare i valori reali della configurazione esistente. Non è stato possibile riprodurre il problema in un ambiente di test completo per individuare la causa esatta nel codice del frontend di Homebridge UI. Per evitare ulteriori tentativi rischiosi, si torna alla modalità di editing manuale del JSON, l'unica verificata sicura. Si valuterà di riprovare in futuro con un ambiente di test più adeguato.
 
