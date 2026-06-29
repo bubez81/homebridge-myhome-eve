@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.10
+- Ripristinato `config.schema.json` ora che la causa reale del problema di binding è stata corretta in 1.1.9 (l'estrazione dell'alias del plugin non andava più in crash). Verificato di nuovo che il matching backend del blocco `LegrandMyHome` funzioni con dati di configurazione reali.
+
 ## 1.1.9
 - Trovata e corretta la causa reale per cui Homebridge UI non riconosceva il blocco di configurazione del plugin (sia nel form che nell'editor JSON grezzo): l'estrazione dell'alias del plugin, che Homebridge UI esegue eseguendo il nostro `index.js` dentro un ambiente fittizio ("mock"), andava in crash perché sia il nostro codice che `fakegato-history` fanno `class X extends Characteristic`, e in quel mock `Characteristic` non è una vera classe. Il crash impediva a Homebridge UI di scoprire che il blocco con `"platform": "LegrandMyHome"` appartiene a questo plugin. Ora l'inizializzazione di queste classi custom è protetta, così la registrazione della piattaforma avviene comunque. Verificato sia contro il mock di estrazione reale sia contro `@homebridge/hap-nodejs` reale.
 
