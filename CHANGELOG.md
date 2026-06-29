@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.11
+- Trovata (con ricerca approfondita su documentazione fakegato-history, codice sorgente del plugin originale homebridge-myhome e librerie di riferimento come homebridge-lib di ebaauw) la causa reale dell'ordine incoerente/casuale di Consumption/TotalConsumption nell'app Eve: il tipo `'energy'` di fakegato-history è validato solo in combinazione con un `Service.Outlet` nello stesso accessorio; senza di esso (come nel nostro caso) l'app Eve non ha un riferimento stabile per decidere quale valore mostrare come principale, risultando in un comportamento non deterministico anche dopo reset completi di pairing.
+- Aggiunto un `Service.Outlet` "muto" (non gestito, sempre stato di default) come servizio aggiuntivo di ogni `MHPowerMeter`, esattamente come fa il plugin originale `simont77/homebridge-myhome` (citato come esempio di riferimento dalla stessa documentazione di fakegato-history).
+- Aggiunta la caratteristica `ResetTotal` (E863F112), assente fino ad ora: permette di azzerare il totale tenendo premuto/con l'azione di reset in Eve.
+- Verificato con `@homebridge/hap-nodejs` reale (4 servizi nell'ordine corretto: AccessoryInformation, PowerMeterService, FakeGatoHistory, Outlet) e con il mock di estrazione alias di Homebridge UI (nessuna regressione).
+
 ## 1.1.10
 - Ripristinato `config.schema.json` ora che la causa reale del problema di binding è stata corretta in 1.1.9 (l'estrazione dell'alias del plugin non andava più in crash). Verificato di nuovo che il matching backend del blocco `LegrandMyHome` funzioni con dati di configurazione reali.
 

@@ -60,12 +60,26 @@ module.exports = function (homebridge) {
 		};
 		LegrandMyHome.TotalConsumption.UUID = 'E863F10C-079E-48FF-8F27-9C2605A29F52';
 
+		/* Eve Reset Total (tap "reset" sul totale in Eve) */
+		LegrandMyHome.ResetTotal = class ResetTotal extends Characteristic {
+			constructor() {
+				super('Reset Total', 'E863F112-079E-48FF-8F27-9C2605A29F52');
+				this.setProps({
+					format: Formats.UINT32,
+					perms: [Perms.PAIRED_READ, Perms.PAIRED_WRITE, Perms.NOTIFY]
+				});
+				this.value = this.getDefaultValue();
+			}
+		};
+		LegrandMyHome.ResetTotal.UUID = 'E863F112-079E-48FF-8F27-9C2605A29F52';
+
 		/* Eve Power Meter service custom */
 		LegrandMyHome.PowerMeterService = class PowerMeterService extends Service {
 			constructor(displayName, subtype) {
 				super(displayName, '00000001-0000-1777-8000-775D67EC4377', subtype);
 				this.addCharacteristic(LegrandMyHome.CurrentPowerConsumption);
 				this.addCharacteristic(LegrandMyHome.TotalConsumption);
+				this.addCharacteristic(LegrandMyHome.ResetTotal);
 			}
 		};
 	} catch (e) {
@@ -604,10 +618,27 @@ class MHPowerMeter {
                         callback(null, this.energyKwh);
                 });
 
+                this.resetChar = this.powerMeterService.getCharacteristic(LegrandMyHome.ResetTotal)
+                        || this.powerMeterService.addCharacteristic(LegrandMyHome.ResetTotal);
+                this.resetChar
+                        .on('set', (value, callback) => {
+                                this.energyKwh = 0;
+                                if (this.totalChar) this.totalChar.updateValue(0);
+                                callback(null);
+                        })
+                        .on('get', (callback) => {
+                                callback(null, 0);
+                        });
+
                 // Storico per Eve (grafici/andamento nel tempo)
                 this.loggingService = new FakeGatoHistoryService('energy', this, { storage: 'fs' });
 
-                return [service, this.powerMeterService, this.loggingService];
+                // Service.Outlet "muto" (non gestito): combinazione richiesta da fakegato-history/Eve
+                // per il tipo 'energy', altrimenti l'app Eve non ha un riferimento stabile per
+                // decidere l'ordine di visualizzazione di Consumption/TotalConsumption.
+                this.outlet = new Service.Outlet(this.name + " dumb switch");
+
+                return [service, this.powerMeterService, this.loggingService, this.outlet];
         }
 
         updatePower(watts) {
