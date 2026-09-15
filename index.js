@@ -146,6 +146,23 @@ class LegrandMyHome {
 				});
 				this.api.publishExternalAccessories("homebridge-myhome-eve", externalAccessories);
 				this.log.info("LegrandMyHome: " + externalAccessories.length + " power meter pubblicati come external accessory");
+
+					// Homebridge 2.x Matter: pubblica gli stessi power meter come OnOffOutlet con misurazione energia
+					if (this.api && this.api.matter && this.api.matter.deviceTypes && this.api.matter.deviceTypes.OnOffOutlet) {
+						var matterAccessories = this.powerMeterAccessories.map(function(meter) {
+							return meter.toMatterAccessory();
+						});
+						Promise.resolve(this.api.matter.registerPlatformAccessories("homebridge-myhome-eve", "LegrandMyHome", matterAccessories))
+							.then(function() {
+								this.powerMeterAccessories.forEach(function(meter) { meter.matterRegistered = true; });
+								this.log.info("LegrandMyHome: " + matterAccessories.length + " power meter pubblicati come Matter OnOffOutlet Energy Meter");
+							}.bind(this))
+							.catch(function(e) {
+								this.log.error("LegrandMyHome: errore registrazione Matter power meter: " + (e && e.stack ? e.stack : e));
+							}.bind(this));
+					} else {
+						this.log.warn("LegrandMyHome: Matter API non disponibile per questo child bridge");
+					}
 			}.bind(this));
 		}
 
@@ -607,6 +624,9 @@ class MHPowerMeter {
 		this.address = config.address;
 		this.displayName = config.name;
 		this.UUID = UUIDGen.generate(sprintf("powermeter-v2-%s",config.address));
+		this.matterUUID = UUIDGen.generate(sprintf("powermeter-matter-v1-%s",config.address));
+		this.api = config.parent.api;
+		this.matterRegistered = false;
 		this.log = log;
 		this.value = 0; // instant power in W
 		this.energyKwh = 0; // total energy in kWh
@@ -667,16 +687,100 @@ class MHPowerMeter {
                 return [service, this.powerMeterService, this.loggingService];
         }
 
+	        toMatterAccessory() {
+	                const now = Math.round(Date.now() / 1000);
+	                return {
+	                        UUID: this.matterUUID,
+	                        displayName: this.name,
+	                        deviceType: this.api.matter.deviceTypes.OnOffOutlet,
+	                        serialNumber: "MyHome-WHO18-" + this.address,
+	                        manufacturer: this.config.manufacturer || "Legrand MyHome",
+	                        model: this.config.model || "Power Meter",
+	                        firmwareRevision: "1.1.13",
+	                        context: {
+	                                address: String(this.address),
+	                                type: "MHPowerMeter"
+	                        },
+	                        clusters: {
+	                                onOff: { onOff: true },
+	                                electricalPowerMeasurement: {
+	                                        activePower: Math.round((this.value || 0) * 1000)
+	                                },
+	                                electricalEnergyMeasurement: {
+	                                        cumulativeEnergyImported: {
+	                                                energy: Math.round((this.energyKwh || 0) * 1000000),
+	                                                endTimestamp: now
+	                                        }
+	                                }
+	                        },
+	                        handlers: {
+	                                onOff: {
+	                                        on: async function() { return true; },
+	                                        off: async function() { return true; }
+	                                }
+	                        },
+	                        getState: function(cluster, attribute) {
+	                                const now = Math.round(Date.now() / 1000);
+	                                if (cluster === 'onOff' && attribute === 'onOff') return true;
+	                                if (cluster === 'electricalPowerMeasurement' && attribute === 'activePower') {
+	                                        return Math.round((this.value || 0) * 1000);
+	                                }
+	                                if (cluster === 'electricalEnergyMeasurement' && attribute === 'cumulativeEnergyImported') {
+	                                        return {
+	                                                energy: Math.round((this.energyKwh || 0) * 1000000),
+	                                                endTimestamp: now
+	                                        };
+	                                }
+	                                return undefined;
+	                        }.bind(this)
+	                };
+	        }
+
+	        updateMatterPower() {
+	                if (!this.api || !this.api.matter || !this.matterRegistered) return;
+	                this.api.matter.updateAccessoryState(
+	                        this.matterUUID,
+	                        'electricalPowerMeasurement',
+	                        { activePower: Math.round((this.value || 0) * 1000) }
+	                ).then(function() {
+	                        this.log.info("Matter power update sent " + this.address + " = " + this.value + " W");
+	                }.bind(this)).catch(function(e) {
+	                        this.log.error("Matter power update failed " + this.address + ": " + e);
+	                }.bind(this));
+	        }
+
+	        updateMatterEnergy() {
+	                if (!this.api || !this.api.matter || !this.matterRegistered) return;
+	                this.api.matter.updateAccessoryState(
+	                        this.matterUUID,
+	                        'electricalEnergyMeasurement',
+	                        {
+	                                cumulativeEnergyImported: {
+	                                        energy: Math.round((this.energyKwh || 0) * 1000000),
+	                                        endTimestamp: Math.round(Date.now() / 1000)
+	                                }
+	                        }
+	                ).then(function() {
+	                        this.log.info("Matter energy update sent " + this.address + " = " + this.energyKwh + " kWh");
+	                }.bind(this)).catch(function(e) {
+	                        this.log.error("Matter energy update failed " + this.address + ": " + e);
+	                }.bind(this));
+	        }
+
+
+
         updatePower(watts) {
                 this.value = parseFloat(watts);
                 if (this.currentChar) this.currentChar.updateValue(this.value);
                 if (this.loggingService) this.loggingService.addEntry({ time: Math.round(Date.now() / 1000), power: this.value });
+	                this.updateMatterPower();
         }
 
         updateEnergyWh(wh) {
                 const kwh = parseFloat(wh) / 1000.0;
                 this.energyKwh = kwh;
                 if (this.totalChar) this.totalChar.updateValue(kwh);
+	                this.updateMatterEnergy();
         }
 }
 
