@@ -87,7 +87,7 @@ module.exports = function (homebridge) {
 	}
 
 	process.setMaxListeners(0);
-	homebridge.registerPlatform("homebridge-myhome", "LegrandMyHome", LegrandMyHome);
+	homebridge.registerPlatform("homebridge-myhome-eve", "LegrandMyHome", LegrandMyHome);
 
 };
 
@@ -100,6 +100,7 @@ class LegrandMyHome {
 		this.devices = [];
 		this.lightBuses = [];
 		this._powerIndex = new Map();
+		this.cachedMatterAccessories = new Map();
 		this.controller = new mh.MyHomeClient(config.ipaddress, config.port, config.ownpassword, this);
 		this.config.devices.forEach(function (accessory) {
 			this.log.info("LegrandMyHome: adds accessory");
@@ -176,6 +177,21 @@ class LegrandMyHome {
 				try { this.controller.getEnergyTotal(accessory.address); } catch(e) {}
 			}.bind(this));
 		}.bind(this), 60000);
+	}
+
+
+	configureAccessory(accessory) {
+		// Nessun accessorio HAP dinamico da ripristinare.
+		// Questo metodo rende la platform DynamicPlatformPlugin per Homebridge,
+		// necessario anche per il ripristino degli accessori Matter cached.
+	}
+
+	configureMatterAccessory(accessory) {
+		this.cachedMatterAccessories.set(accessory.UUID, accessory);
+		this.log.info(
+			"LegrandMyHome: restored cached Matter accessory " +
+			accessory.displayName
+		);
 	}
 
 	onMonitor(_frame) {
