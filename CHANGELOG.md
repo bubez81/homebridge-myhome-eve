@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.1.15
+
+- Rimossi i log informativi ripetitivi degli aggiornamenti Matter riusciti; restano gli errori di invio.
+- Ricomposti i frame TCP completi prima di elaborare autenticazione e misure WHO=18, anche quando arrivano spezzati o concatenati.
+- Azzerato il buffer di ricezione alla riconnessione; chiusi i socket inattivi e centralizzato il tentativo di riconnessione.
+- I comandi accodati attendono l'autenticazione e vengono inviati in ordine, senza saltare elementi della coda.
+- Versione firmware Matter derivata da package.json.
+- Documentata la distinzione tra caratteristiche Eve via HAP e misure standard Matter. Nella prova con Eve 6.5.1 i consumi Matter non sono comparsi; questa release non risolve tale compatibilità.
+- Aggiunti test automatici per frammentazione, riconnessione, inattività e coda comandi.
+- Limitati i file distribuiti per escludere backup e moduli sperimentali locali.
+
+## 1.1.14
+
+- Ripristino degli accessori Matter memorizzati tramite configureMatterAccessory e registrazione della piattaforma con identificatore homebridge-myhome-eve.
+
 ## 1.1.13
 
 - Aggiunto supporto Matter per i misuratori BTicino/MyHome (`MHPowerMeter`, WHO=18): vengono registrati come `OnOffOutlet` con i cluster `electricalPowerMeasurement` e `electricalEnergyMeasurement`.

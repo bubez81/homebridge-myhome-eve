@@ -6,14 +6,14 @@
 [![Pull Request #25](https://img.shields.io/github/pulls/detail/state/angeloxx/homebridge-myhome/25?label=PR%20%2325%20status)](https://github.com/angeloxx/homebridge-myhome/pull/25)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Plugin Homebridge per **BTicino MyHome OpenWebNet** (WHO=18, moduli **F520/F523**) con compatibilità **Eve**: visualizza **potenza istantanea (W)** e **consumo totale (kWh)** nell’app Eve con grafici e storico.
+Plugin Homebridge per **BTicino MyHome OpenWebNet** (WHO=18, moduli **F520/F523**). In modalità HAP espone i misuratori con le caratteristiche Eve per potenza, consumo totale e storico; in modalità Matter espone i cluster standard di potenza ed energia.
 
 ---
 
 ## ✨ Caratteristiche
 
 - Potenza istantanea (W) e consumo totale (kWh)
-- Compatibilità nativa con **Eve** (grafici/storico)
+- Compatibilità HAP con **Eve** (grafici/storico)
 - Supporto **Matter** per i misuratori, con aggiornamenti di potenza ed energia
 - Protocollo **OpenWebNet** (MyHomeServer1 / F454 / MH200N)
 - Supporto multiplo per moduli F520/F523 (WHO=18)
@@ -31,7 +31,13 @@ Riavvia Homebridge dopo l’installazione.
 
 ---
 
-## 🆕 Novità della versione 1.1.13
+## 🆕 Novità della versione 1.1.15
+
+- Ridotti i log degli aggiornamenti Matter riusciti: vengono mantenuti solo gli errori.
+- Ricomposizione dei frame TCP WHO=18 e riconnessione più robusta.
+- Il percorso Matter usa esclusivamente i cluster standard supportati dall'API Homebridge.
+
+## Novità della versione 1.1.13
 
 I misuratori BTicino/MyHome possono essere esposti tramite Matter come `OnOffOutlet`, con i cluster `electricalPowerMeasurement` e `electricalEnergyMeasurement`. La potenza istantanea è stata verificata in Apple Casa; storico ed energia totale in Casa restano da verificare.
 
@@ -65,7 +71,7 @@ Il plugin estende la piattaforma `LegrandMyHome` aggiungendo caratteristiche **E
 - `CurrentPowerConsumption` → potenza istantanea (W)
 - `TotalConsumption` → energia totale (kWh)
 
-In **Eve** ogni accessorio mostra grafico storico e aggiornamento automatico dei consumi.
+In **Eve**, quando il percorso HAP è attivo, ogni accessorio mostra grafico storico e aggiornamento automatico dei consumi. Il percorso Matter espone i valori standard a controller Matter; nella prova con Eve 6.5.1 i consumi Matter non vengono mostrati. Questa versione non implementa lo storico proprietario Eve via Matter.
 
 ---
 

@@ -712,7 +712,7 @@ class MHPowerMeter {
 	                        serialNumber: "MyHome-WHO18-" + this.address,
 	                        manufacturer: this.config.manufacturer || "Legrand MyHome",
 	                        model: this.config.model || "Power Meter",
-	                        firmwareRevision: "1.1.13",
+	                        firmwareRevision: require("./package.json").version,
 	                        context: {
 	                                address: String(this.address),
 	                                type: "MHPowerMeter"
@@ -758,9 +758,7 @@ class MHPowerMeter {
 	                        this.matterUUID,
 	                        'electricalPowerMeasurement',
 	                        { activePower: Math.round((this.value || 0) * 1000) }
-	                ).then(function() {
-	                        this.log.info("Matter power update sent " + this.address + " = " + this.value + " W");
-	                }.bind(this)).catch(function(e) {
+						).catch(function(e) {
 	                        this.log.error("Matter power update failed " + this.address + ": " + e);
 	                }.bind(this));
 	        }
@@ -776,9 +774,7 @@ class MHPowerMeter {
 	                                        endTimestamp: Math.round(Date.now() / 1000)
 	                                }
 	                        }
-	                ).then(function() {
-	                        this.log.info("Matter energy update sent " + this.address + " = " + this.energyKwh + " kWh");
-	                }.bind(this)).catch(function(e) {
+						).catch(function(e) {
 	                        this.log.error("Matter energy update failed " + this.address + ": " + e);
 	                }.bind(this));
 	        }
