@@ -11,8 +11,10 @@ Plugin Homebridge per **BTicino MyHome OpenWebNet** (WHO=18, moduli **F520/F523*
 ---
 
 ## ✨ Caratteristiche
+
 - Potenza istantanea (W) e consumo totale (kWh)
 - Compatibilità nativa con **Eve** (grafici/storico)
+- Supporto **Matter** per i misuratori, con aggiornamenti di potenza ed energia
 - Protocollo **OpenWebNet** (MyHomeServer1 / F454 / MH200N)
 - Supporto multiplo per moduli F520/F523 (WHO=18)
 - Nessuna dipendenza da Home Assistant o bridge esterni
@@ -26,6 +28,16 @@ oppure CLI:
 npm install -g homebridge-myhome-eve
 ```
 Riavvia Homebridge dopo l’installazione.
+
+---
+
+## 🆕 Novità della versione 1.1.13
+
+I misuratori BTicino/MyHome possono essere esposti tramite Matter come `OnOffOutlet`, con i cluster `electricalPowerMeasurement` e `electricalEnergyMeasurement`. La potenza istantanea è stata verificata in Apple Casa; storico ed energia totale in Casa restano da verificare.
+
+Richiede **Homebridge 2.4.0 o successivo**. Abilita Matter sul child bridge del plugin e abbinalo al controller tramite il relativo QR/codice Matter. Gli accessori rappresentano misuratori sempre accesi: i comandi on/off non controllano il carico elettrico.
+
+Dettagli nel [changelog](CHANGELOG.md#1113).
 
 ---
 
@@ -61,7 +73,7 @@ In **Eve** ogni accessorio mostra grafico storico e aggiornamento automatico dei
 | Componente     | Versione minima |
 |----------------|------------------|
 | Node.js        | ≥ 18.x           |
-| Homebridge     | ≥ 1.6.x          |
+| Homebridge     | ≥ 2.4.0          |
 | MyHomeServer   | Porta 20000      |
 | Moduli BTicino | F520 / F523      |
 
@@ -85,4 +97,3 @@ hb-service restart
 
 ## 💬 Supporto
 Apri una issue: https://github.com/bubez81/homebridge-myhome-eve/issues
-

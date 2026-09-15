@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.13
+
+- Aggiunto supporto Matter per i misuratori BTicino/MyHome (`MHPowerMeter`, WHO=18): vengono registrati come `OnOffOutlet` con i cluster `electricalPowerMeasurement` e `electricalEnergyMeasurement`.
+- Aggiornamento live della potenza istantanea e dell'energia totale importata, con conversione da W a mW e da kWh a mWh per Matter.
+- Confermata sul sistema in uso la visualizzazione della potenza istantanea in Apple Casa. La visualizzazione dello storico e dell'energia totale in Casa resta da verificare.
+- L'accessorio Matter rappresenta un misuratore sempre acceso: i comandi on/off non azionano il carico elettrico. Restano disponibili gli accessori HomeKit esterni e le caratteristiche Eve esistenti.
+- Aggiunti log degli aggiornamenti Matter riusciti e degli errori di registrazione o invio.
+- Versione minima di Homebridge aggiornata a **2.4.0**; aggiunte le dichiarazioni `supports-hap` e `supports-matter`. Per usare Matter occorre abilitarlo sul child bridge e abbinarlo al controller.
+- Verifica sintattica eseguita con `node -c index.js`.
+
 ## 1.1.12
 - Rimosso il `Service.Outlet` "muto" aggiunto in 1.1.11: non ha risolto l'ordine di visualizzazione in Eve (verificato su dati reali: ~50% dei misuratori risultava comunque invertito, indipendentemente dal codice — segno che la causa è una scelta non deterministica dell'app Eve per servizi non-Eve-nativi, non controllabile da plugin). Restava solo un accessorio extra inutile nell'app Home.
 - I misuratori di potenza (`MHPowerMeter`) vengono ora pubblicati come **external accessory** (un pairing HomeKit indipendente per ciascuno) invece che tutti insieme dentro il child bridge unico del plugin. Permette di rimuovere e ri-aggiungere singolarmente ogni misuratore in Eve/Casa per provare a correggere l'ordine di visualizzazione di quello specifico, senza dover ripetere il pairing di tutto l'impianto.
