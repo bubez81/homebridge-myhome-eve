@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.16
+
+- Aggiunta la scelta della topologia elettrica Matter per ogni `MHPowerMeter` nella configurazione del plugin: predefinita Homebridge, NODE, SET o TREE.
+- La proprietà `matterPowerTopology` determina il ruolo del misuratore: nessuna assegnazione automatica basata sul nome o sull'indirizzo OpenWebNet.
+- Le topologie personalizzate sono abilitate dal flag di piattaforma `matterPowerTopologyExperiment`, disattivato per impostazione predefinita. Le configurazioni esistenti senza le nuove opzioni mantengono il comportamento precedente.
+- In modalità SET ogni misuratore riferisce il proprio endpoint Matter, ricavato durante l'inizializzazione anche dopo un riavvio, senza usare l'indirizzo OpenWebNet o un numero obsoleto della cache.
+- Aggiunti log diagnostici opzionali degli aggiornamenti di potenza con `matterPowerTopologyDiagnostics`; restano disattivati per impostazione predefinita.
+- Documentati significato e ambito delle topologie: NODE riguarda il nodo Matter, non gli altri bridge. Questa versione non risolve il doppio conteggio del badge Energia di Apple Casa osservato nella prova NODE/SET.
+- Verificati sintassi, configurazione e comportamento con Homebridge 2.4.0 / matter.js 0.17.9; aggiunti test con librerie reali per topologie, autoriferimento SET, riapertura del nodo e ritorno al comportamento standard.
+
 ## 1.1.15
 
 - Rimossi i log informativi ripetitivi degli aggiornamenti Matter riusciti; restano gli errori di invio.

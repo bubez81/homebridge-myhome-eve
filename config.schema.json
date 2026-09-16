@@ -28,6 +28,18 @@
         "type": "boolean",
         "default": false
       },
+      "matterPowerTopologyExperiment": {
+        "title": "Abilita topologie Matter configurate",
+        "type": "boolean",
+        "default": false,
+        "description": "Applica la topologia scelta per ciascun misuratore. Se disattivato usa il comportamento standard Homebridge. Richiede riavvio del child bridge; non garantisce la deduplicazione in Casa."
+      },
+      "matterPowerTopologyDiagnostics": {
+        "title": "Log confronto Energia Matter",
+        "type": "boolean",
+        "default": false,
+        "description": "Registra i watt inviati dai misuratori MyHome per confrontare prima/dopo."
+      },
       "devices": {
         "title": "Dispositivi",
         "type": "array",
@@ -62,6 +74,18 @@
               "type": "string",
               "required": true,
               "description": "Indirizzo OpenWebNet del dispositivo, es. 0/1/5 per luci/tende/prese, oppure numerico per termostati/sensori/power meter"
+            },
+            "matterPowerTopology": {
+              "title": "Topologia elettrica Matter",
+              "type": "string",
+              "default": "default",
+              "description": "Solo misuratori di potenza. Richiede Abilita topologie Matter configurate. SET riguarda solo questo misuratore; NODE riguarda il nodo Matter, non altri bridge.",
+              "oneOf": [
+                { "title": "Predefinita Homebridge", "enum": ["default"] },
+                { "title": "NODE — Misuratore generale del nodo", "enum": ["node"] },
+                { "title": "SET — Solo questo misuratore", "enum": ["set"] },
+                { "title": "TREE — Questo misuratore e i suoi endpoint figli", "enum": ["tree"] }
+              ]
             },
             "scene": {
               "title": "Numero scenario",

@@ -1,2 +1,5 @@
 node_modules/
 *.log
+
+.power-topology-backups/
+/POWER-TOPOLOGY-EXPERIMENT.md

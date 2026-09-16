@@ -1,3 +1,4 @@
+const { applyPowerTopologyExperiment } = require("./lib/power-topology-experiment");
 var path = require("path");	
 var mh = require(path.join(__dirname,'/lib/mhclient'));
 var sprintf = require("sprintf-js").sprintf, inherits = require("util").inherits, Promise = require('promise');
@@ -705,7 +706,7 @@ class MHPowerMeter {
 
 	        toMatterAccessory() {
 	                const now = Math.round(Date.now() / 1000);
-	                return {
+	                const accessory = {
 	                        UUID: this.matterUUID,
 	                        displayName: this.name,
 	                        deviceType: this.api.matter.deviceTypes.OnOffOutlet,
@@ -750,15 +751,25 @@ class MHPowerMeter {
 	                                return undefined;
 	                        }.bind(this)
 	                };
+	                return applyPowerTopologyExperiment(accessory, this);
 	        }
 
 	        updateMatterPower() {
 	                if (!this.api || !this.api.matter || !this.matterRegistered) return;
+	                const watts = this.value || 0;
 	                this.api.matter.updateAccessoryState(
 	                        this.matterUUID,
 	                        'electricalPowerMeasurement',
-	                        { activePower: Math.round((this.value || 0) * 1000) }
-						).catch(function(e) {
+	                        { activePower: Math.round(watts * 1000) }
+						).then(function() {
+                            if (this.config.parent.config.matterPowerTopologyDiagnostics === true) {
+                                this.log.info('[PowerTopology reading] ' + JSON.stringify({
+                                    name: this.name, address: String(this.address), watts,
+                                    experiment: this.config.parent.config.matterPowerTopologyExperiment === true,
+                                    timestamp: new Date().toISOString()
+                                }));
+                            }
+                        }.bind(this)).catch(function(e) {
 	                        this.log.error("Matter power update failed " + this.address + ": " + e);
 	                }.bind(this));
 	        }
