@@ -1,6 +1,6 @@
 {
   "name": "homebridge-myhome-eve",
-  "version": "1.1.16",
+  "version": "1.1.17",
   "displayName": "MyHome Eve Power Meter",
   "description": "Plugin Homebridge per BTicino MyHome OpenWebNet (WHO=18, moduli F520 e F523) con misuratori HAP compatibili con Eve e pubblicazione Matter dei dati standard di potenza ed energia.",
   "license": "MIT",
@@ -63,6 +63,7 @@
     "config.schema.json",
     "sample-config.json",
     "LICENSE",
-    "lib/power-topology-experiment.js"
+    "lib/power-topology-experiment.js",
+    "scripts/repair-power-topology-cache.js"
   ]
 }

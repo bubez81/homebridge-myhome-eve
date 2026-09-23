@@ -165,3 +165,64 @@ HOMEBRIDGE_TEST_ROOT=/percorso/node_modules/homebridge npm test
 
 Il test Matter usa storage temporaneo separato dai pairing reali; senza la
 variabile viene segnalato come saltato. Verificato con Homebridge 2.4.0 e matter.js 0.17.9.
+
+
+### Ripristino cache Matter — 1.1.17
+
+La 1.1.17 mantiene le topologie configurate e non richiede modifiche a Homebridge.
+Il server SET valorizza `availableEndpoints` durante `initialize()`, quando Matter
+ha assegnato il numero endpoint, prima della validazione dello stato. L'attributo
+non viene più inserito in `accessory.clusters`, che Homebridge 2.4.0 serializza
+senza conservare la classe specializzata.
+
+Al riavvio Homebridge ripristina inizialmente la topologia standard TREE; la
+registrazione del plugin ricostruisce NODE/SET/TREE prima che il child bridge
+venga pubblicato in rete. Il messaggio informativo `changed structure -
+re-registering` può quindi restare. Nei test su Homebridge 2.4.0 / Matter.js
+0.17.9 i numeri endpoint rimangono invariati: non si verificano gli errori di
+conformance o le riallocazioni degli endpoint causate dal restore fallito.
+Non è una soluzione al doppio conteggio Apple Casa.
+
+#### Passaggio dalla 1.1.16 con esperimento SET attivo
+
+La vecchia cache può contenere ancora `powerTopology.availableEndpoints`.
+Per evitare gli errori anche al primo avvio dopo l'aggiornamento:
+
+1. Arrestare il child bridge MyHome (oppure Homebridge) e installare la 1.1.17.
+2. Identificare il suo file `<storage>/matter/<bridge-id>/accessories.json`.
+3. Dalla directory del plugin eseguire l'anteprima:
+
+   ```sh
+   node scripts/repair-power-topology-cache.js /percorso/matter/BRIDGE/accessories.json
+   ```
+
+4. Verificare che siano elencati soltanto i misuratori attesi, poi applicare:
+
+   ```sh
+   node scripts/repair-power-topology-cache.js /percorso/matter/BRIDGE/accessories.json --apply --bridge-stopped
+   ```
+
+5. Riavviare, controllare i nove misuratori e ripetere il riavvio verificando
+   l'assenza di errori `availableEndpoints` e `Stored number ... already allocated`.
+
+Lo script opera solo sulle voci `homebridge-myhome-eve` / `LegrandMyHome` /
+`MHPowerMeter` con la struttura nota della 1.1.16. Conserva un backup esatto
+accanto al file, mantiene proprietario e permessi, e non tocca i dati di
+commissioning Matter. Non viene eseguito automaticamente durante l'installazione.
+Non cancellare l'intera directory Matter e non rimuovere gli abbinamenti.
+
+Senza questa migrazione il primo restore può ancora mostrare gli errori della
+vecchia cache, prima che il plugin riscriva la definizione corretta. Per questo
+la migrazione a bridge fermo è il percorso consigliato.
+
+#### Test di integrazione riproducibili
+
+```sh
+HOMEBRIDGE_TEST_ROOT=/percorso/homebridge-2.4.0 npm test
+```
+
+Il percorso deve contenere `dist/` e le dipendenze Matter.js 0.17.9. Senza questa
+variabile i due test Matter sono esplicitamente saltati, non considerati superati.
+Il test `matter-cache-restore.test.js` usa la vera serializzazione su disco, il
+callback pre-online di Homebridge e il suo `AccessoryManager`, senza sostituirli
+con mock; il nodo di test non viene portato online.
