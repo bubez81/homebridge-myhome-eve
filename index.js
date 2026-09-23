@@ -190,7 +190,7 @@ class LegrandMyHome {
 	configureMatterAccessory(accessory) {
 		this.cachedMatterAccessories.set(accessory.UUID, accessory);
 		this.log.info(
-			"LegrandMyHome: restored cached Matter accessory " +
+			"LegrandMyHome: loaded cached Matter definition " +
 			accessory.displayName
 		);
 	}

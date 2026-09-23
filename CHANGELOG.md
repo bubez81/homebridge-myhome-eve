@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.17
+
+- Corretto il restore Matter su Homebridge 2.4.0 mantenendo NODE/SET/TREE: `availableEndpoints` viene inizializzato nel server SET, senza salvarlo nella definizione generica in cache.
+- Aggiunta migrazione offline, con anteprima e backup, dei soli dati sperimentali MyHome presenti nella cache 1.1.16. Nessuna modifica al codice Homebridge, agli UUID o ai dati di abbinamento.
+- Test di regressione attraverso cache, restore pre-online e registrazione reali di Homebridge; verifica di nove misuratori, riavvii ripetuti, endpoint stabili, valori e rollback della topologia.
+- Il log `configureMatterAccessory` ora distingue il caricamento della definizione dal successo della registrazione.
+
 ## 1.1.16
 
 - Aggiunta la scelta della topologia elettrica Matter per ogni `MHPowerMeter` nella configurazione del plugin: predefinita Homebridge, NODE, SET o TREE.

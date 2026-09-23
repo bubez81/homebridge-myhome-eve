@@ -59,7 +59,7 @@ test('real Homebridge/Matter: NODE, SET self-reference, all submeters, restart a
                     const expectedFeature = phaseEnabled ? expected : 'treeTopology';
                     a.UUID += '-' + caseId++;
                     // Simulate an obsolete value restored by Homebridge's cache.
-                    if (expectedFeature === 'setTopology') a.clusters.powerTopology.availableEndpoints = [999];
+                    if (expectedFeature === 'setTopology') a.clusters.powerTopology = { availableEndpoints: [999] };
                     const ep = new Endpoint(a.deviceType, { id: a.UUID, ...a.clusters });
                     await node.add(ep);
                     const topology = ep.state.powerTopology;
